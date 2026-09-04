@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
+import { supabase } from './supabase';
   Check, X, Plus, Trash2, Package, Loader2, ClipboardList,
   History, Boxes, ShoppingCart, User, AlertTriangle, Pencil,
 } from 'lucide-react';
@@ -106,13 +107,17 @@ export default function MaterialLager() {
   // Lädt die aktuellsten Materialien direkt aus dem Shared Storage.
   // Gibt null zurück, falls (noch) nichts gespeichert ist oder ein Fehler auftritt.
   const loadItemsFromStorage = useCallback(async () => {
-    try {
-      const res = await window.storage.get(ITEMS_KEY, true);
-      return res && res.value ? JSON.parse(res.value) : null;
-    } catch (e) {
-      return null;
-    }
-  }, []);
+  const { data, error } = await supabase
+    .from('items')
+    .select('*');
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}, []);
 
   // Lädt den aktuellsten Verlauf direkt aus dem Shared Storage.
   const loadHistoryFromStorage = useCallback(async () => {
